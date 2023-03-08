@@ -1,0 +1,14 @@
+Map<String, String> map = new HashMap<>();
+// 取出源数据
+String data = Constants.DATA;
+// 用破折号分割成语及其完整解释
+String[] keyAndValue = data.split("——");
+// 将成语作为key
+String key = keyAndValue[0];
+// 将解释作为value
+String value = keyAndValue[1];
+// 截断释义以外的其他解释部分
+int index = value.indexOf("释义");
+value = value.substring(index + 3, value.indexOf("。", index));
+// 存入map中
+map.put(key, value);

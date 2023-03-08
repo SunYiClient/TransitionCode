@@ -1,0 +1,66 @@
+/**
+* URL即https://fanyi-api.baidu.com/api/trans/vip/translate?from=en&to=zh&q=
+* text即输入的英文文本
+* stringToMD5即为对appId和文本、密钥的MD5加密方法
+*/
+String urlString = URL + text + "&sign=" + stringToMD5(appId + text + secretKey);
+HttpURLConnection connection = null;
+BufferedReader reader = null;
+try {
+    URL url = new URL(urlString);
+    connection = (HttpURLConnection) url.openConnection();
+    //设置请求方法
+    connection.setRequestMethod("GET");
+    //设置连接超时时间（毫秒）
+    connection.setConnectTimeout(5000);
+    //设置读取超时时间（毫秒）
+    connection.setReadTimeout(5000);
+    connection.connect();
+    int responseCode = connection.getResponseCode();
+    if (responseCode == HttpURLConnection.HTTP_OK) {
+        //返回输入流
+        InputStream in = connection.getInputStream();
+        //读取输入流
+        reader = new BufferedReader(new InputStreamReader(in));
+        StringBuilder result = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            result.append(line);
+        }
+        JSONObject jsonObject = new JSONObject(result.toString());
+        JSONArray jsonArray = jsonObject.optJSONArray("trans_result");
+        JSONObject transResult = (JSONObject) jsonArray.get(0);
+        String dst = transResult.optString("dst");
+        outText.setText(dst);
+    }
+} catch (Exception e) {
+    e.printStackTrace();
+} finally {
+    if (reader != null) {
+        try {
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    if (connection != null) {
+        //关闭连接
+        connection.disconnect();
+    }
+}
+
+private String stringToMD5(String string) {
+    byte[] hash;
+    try {
+       hash =MessageDigest.getInstance("MD5").digest(string.getBytes("UTF-8"));
+    } catch (Exception e) {
+       e.printStackTrace();
+       return null;
+    }
+    StringBuilder hex = new StringBuilder(hash.length * 2);
+    for (byte b : hash) {
+       if ((b & 0xFF) < 0x10) hex.append("0");
+       hex.append(Integer.toHexString(b & 0xFF));
+    }
+    return hex.toString();
+}
